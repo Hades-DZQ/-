@@ -1,1 +1,1358 @@
+视频地址：
+https://www.bilibili.com/video/BV1Vt411z7wy?p=1
+文档地址
+https://github.com/hjzCy/sql_node/blob/master/mysql/MySQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.md
+
+目录
+MySQL基本操作
+建表约束（主键、自增、外键、唯一、非空、默认）
+数据库的三大设计范式
+查询练习1-43
+连接查询（内连接、左连接、右连接）
+事务
+索引
+
+MySQL基本操作
+1.登录数据库服务 (退出 exit；) 
+mysql -uroot -p 123
+2.查看有什么数据库 
+show databases;
+3.选择数据库   
+use 数据库名;
+4.查询表中的数据 
+show tables;
+5.创建自己的数据库 
+create database 数据库名;
+6.查看数据表中的记录 
+select * from 数据表名;
+7.创建一个数据表 
+create TABLE pet(    name VARCHAR(20), 
+                    owner VARCHAR(20),
+                  specise VARCHAR(20),
+                  sex CHAR(1),
+                  brith DATAE,
+                  death DATE );
+注意事项:
+                     1:var()与varchar()的区别在于var()是定常的,哪怕存储的字符串没有达到"()"中数字的
+上限,var()依然会占用空格来填充空间.而varchar()则是不定长的,没有达到"()"中的上
+限则会自动去掉后面的空格; 
+                     2:定义最后一个字段的时候不要加",";
+                    
+8..查看数据表的架构 
+describe tableName; 或者 desc tableName;
+9.插入数据
+INSERT INTO pet VALUES ('kk','cc','dog','1','1998-8-2',null); 
+或者 INSERT INTO pet (name, owner) VALUES ('xx', 'cc');
+  注意: NULL:代表的是空,表示该字段还没有数据.千万不要主动填写'NULL',这代表你的
+字段有一个值叫做'null'.
+删除数据 
+delete from pet where name='旺财';
+修改数据 
+update tableName set 字段1=值1,字段2=值2 ... WHERE 条件;
+10.删除表
+drop table myorder;
+12.MySQL数据类型与类型选择
+菜鸟教程 ：https://www.runoob.com/mysql/mysql-data-types.html
+
+建表约束(主键、自增、外键、唯一、非空、默认)
+主键约束（primary key）"不能为空"
+它能够唯一确定一张表中的一条记录，通过给某个字段添加约束，可以使得该字段不重复而且不为空。
+主键约束(primary key)中包含了唯一约束
+
+create table user(
+id int PRIMARY KEY,
+name VARCHAR(20)
+);
+
+INSERT INTO user VALUES (1, '张三');
+联合主键“主键不能为空”
+联合主键只要所有的字段都不是相同的情况下，可以允许其中的字段重复。
+CREATE TABLE user2(
+    id INT,
+    name VARCHAR(20),
+    password VARCHAR(20),
+    PRIMARY key(id,name)
+);
+ 
+INSERT INTO user2 VALUES (1,'老王','123456');
+自增约束- auto_increment
+自增约束的主键由系统自动递增分配。没有自定义id值 但是自动生成了id
+CREATE TABLE user3(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(20)
+);
+唯一约束- unique
+唯一约束 约束修饰的字段的值不重复，可以为空，但主键不能为空
+约束修饰的字段的值不可以重复！
+	CREATE TABLE user5(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(20)
+);
+
+删除唯一约束
+alter table user7 drop index name;     /*name 是 字段名*/
+非空约束-not null
+
+CREATE TABLE user (
+    id INT,
+    name VARCHAR(20) NOT NULL
+);
+
+移除非空约束
+ALTER TABLE user MODIFY name VARCHAR(20);
+
+默认约束- default
+建表时添加默认约束，约束某个字段的默认值
+
+CREATE TABLE user2 (
+    id INT,
+    name VARCHAR(20),
+    age INT DEFAULT 10
+);
+
+-- 移除非空约束
+ALTER TABLE user MODIFY age INT;
+外键约束-foreign_key
+班级
+CREATE TABLE classes (
+    id INT PRIMARY KEY,
+    name VARCHAR(20)
+);
+
+学生表
+CREATE TABLE students (
+    id INT PRIMARY KEY,
+    name VARCHAR(20),
+    class_id INT,
+    FOREIGN KEY(class_id) REFERENCES classes(id)
+);
+//这里的 class_id 要和 classes 中的 id 字段相关联
+//表示 class_id 的值必须来自于 classes 中的 id 字段值
+//FOREIGN :外来  REFERENCES:应用,参考
+// 主表（父表）classes 中没有的数据值，在副表（子表）students 中，是不可以使用的；
+//主表中的记录被副表引用时，主表不可以被删除。
+//若要想删除,先将附表中的数据删除在删除主表数据
+
+如何建表之后添加主键约束
+
+如果忘记设置主键，还可以通过SQL语句设置（两种方式）：
+alter table user4 add primary key(id);
+或者alter table user4 modify id int primary key;
+删除主键约束
+alter table user4 drop primary key;
+添加唯一约束的方式三种
+alter table user5 add unique(name);
+或者 建表时，添加-unique(name)
+	create table user6(
+    id int,
+    name varchar(20),
+    unique(name)
+);
+或者建表时，添加-name varchar(20) unique
+create table user7(
+    id int,
+    name varchar(20) unique
+);
+或者建表时，添加-unique(id, name)
+create table user8(
+    id int,
+    name varchar(20),
+    unique(id, name)
+);
+
+给主键设置自增长:
+ALTER TABLE user4 MODIFY id INT AUTO_INCREMENT;
+
+
+总结： 添加
+建表的时候就添加约束；
+可以使用 alter...add....
+alter... modify...
+删除
+alter ... drop...
+
+数据库的三大设计范式
+第一范式（1NF）：数据表中的所有字段都是不可分割的原子值。
+字段值可以继续拆分的数据表，不满足 第一范式！
+第二范式（2NF）：必须是在满足第一范式的前提下。第二范式要求：除主键外的每一列都必须完全依赖于主键。
+如果要出现不完全依赖，只可能发生在联合主键的情况下。
+第二范式（2NF）：1NF + 除主键外的每一列都要完全依赖于主键。
+第三范式（3NF）：必须是在满足第二范式的前提下。第三范式要求：除开主键列的其它列之间，不能有传递依赖关系。
+2NF + 除开主键列的其它列之间，不能有传递依赖关系。
+
+2NF
+在满足第一范式的前提下，其他列都必须完全依赖于主键列。如果出现不完全依赖，只可能发生在联合主键的情况下：
+-- 订单表
+CREATE TABLE myorder (
+    product_id INT,
+    customer_id INT,
+    product_name VARCHAR(20),
+    customer_name VARCHAR(20),
+    PRIMARY KEY (product_id, customer_id)
+);
+实际上，在这张订单表中，product_name 只依赖于 product_id ，customer_name 只依赖于customer_id。也就是说，product_name 和 customer_id 是没用关系的，customer_name 和 product_id 也是没有关系的。
+这就不满足第二范式：其他列都必须完全依赖于主键列！
+CREATE TABLE myorder (
+    order_id INT PRIMARY KEY,
+    product_id INT,
+    customer_id INT
+);
+
+CREATE TABLE product (
+    id INT PRIMARY KEY,
+    name VARCHAR(20)
+);
+
+CREATE TABLE customer (
+    id INT PRIMARY KEY,
+    name VARCHAR(20)
+);
+拆分之后，myorder 表中的 product_id 和 customer_id 完全依赖于 order_id 主键，而 product 和 customer 表中的其他字段又完全依赖于主键。满足了第二范式的设计！
+3NF
+在满足第二范式的前提下，除了主键列之外，其他列之间不能有传递依赖关系。
+CREATE TABLE myorder (
+    order_id INT PRIMARY KEY,
+    product_id INT,
+    customer_id INT,
+    customer_phone VARCHAR(15)
+);
+表中的 customer_phone 有可能依赖于 order_id 、 customer_id 两列，也就不满足了第三范式的设计：其他列之间不能有传递依赖关系。
+CREATE TABLE myorder (
+    order_id INT PRIMARY KEY,
+    product_id INT,
+    customer_id INT
+);
+
+CREATE TABLE customer (
+    id INT PRIMARY KEY,
+    name VARCHAR(20),
+    phone VARCHAR(15)
+);
+修改后就不存在其他列之间的传递依赖关系，其他列都只依赖于主键列，满足了第三范式的设计！
+查询练习
+准备数据
+-- 创建数据库
+CREATE DATABASE select_test;
+-- 切换数据库
+USE select_test;
+
+-- 创建学生表
+CREATE TABLE student (
+    no VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(20) NOT NULL,
+    sex VARCHAR(10) NOT NULL,
+    birthday DATE, -- 生日
+    class VARCHAR(20) -- 所在班级
+);
+
+-- 创建教师表
+CREATE TABLE teacher (
+    no VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(20) NOT NULL,
+    sex VARCHAR(10) NOT NULL,
+    birthday DATE,
+    profession VARCHAR(20) NOT NULL, -- 职称
+    department VARCHAR(20) NOT NULL -- 部门
+);
+
+-- 创建课程表
+CREATE TABLE course (
+    no VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(20) NOT NULL,
+    t_no VARCHAR(20) NOT NULL, -- 教师编号
+    -- 表示该 tno 来自于 teacher 表中的 no 字段值
+    FOREIGN KEY(t_no) REFERENCES teacher(no) 
+);
+
+-- 成绩表
+CREATE TABLE score (
+    s_no VARCHAR(20) NOT NULL, -- 学生编号
+    c_no VARCHAR(20) NOT NULL, -- 课程号
+    degree DECIMAL,	-- 成绩
+    -- 表示该 s_no, c_no 分别来自于 student, course 表中的 no 字段值
+    FOREIGN KEY(s_no) REFERENCES student(no),	
+    FOREIGN KEY(c_no) REFERENCES course(no),
+    -- 设置 s_no, c_no 为联合主键
+    PRIMARY KEY(s_no, c_no)
+);
+
+-- 查看所有表
+SHOW TABLES;
+
+-- 添加学生表数据
+INSERT INTO student VALUES('101', '曾华', '男', '1977-09-01', '95033');
+INSERT INTO student VALUES('102', '匡明', '男', '1975-10-02', '95031');
+INSERT INTO student VALUES('103', '王丽', '女', '1976-01-23', '95033');
+INSERT INTO student VALUES('104', '李军', '男', '1976-02-20', '95033');
+INSERT INTO student VALUES('105', '王芳', '女', '1975-02-10', '95031');
+INSERT INTO student VALUES('106', '陆军', '男', '1974-06-03', '95031');
+INSERT INTO student VALUES('107', '王尼玛', '男', '1976-02-20', '95033');
+INSERT INTO student VALUES('108', '张全蛋', '男', '1975-02-10', '95031');
+INSERT INTO student VALUES('109', '赵铁柱', '男', '1974-06-03', '95031');
+
+-- 添加教师表数据
+INSERT INTO teacher VALUES('804', '李诚', '男', '1958-12-02', '副教授', '计算机系');
+INSERT INTO teacher VALUES('856', '张旭', '男', '1969-03-12', '讲师', '电子工程系');
+INSERT INTO teacher VALUES('825', '王萍', '女', '1972-05-05', '助教', '计算机系');
+INSERT INTO teacher VALUES('831', '刘冰', '女', '1977-08-14', '助教', '电子工程系');
+
+-- 添加课程表数据
+INSERT INTO course VALUES('3-105', '计算机导论', '825');
+INSERT INTO course VALUES('3-245', '操作系统', '804');
+INSERT INTO course VALUES('6-166', '数字电路', '856');
+INSERT INTO course VALUES('9-888', '高等数学', '831');
+
+-- 添加添加成绩表数据
+INSERT INTO score VALUES('103', '3-105', '92');
+INSERT INTO score VALUES('103', '3-245', '86');
+INSERT INTO score VALUES('103', '6-166', '85');
+INSERT INTO score VALUES('105', '3-105', '88');
+INSERT INTO score VALUES('105', '3-245', '75');
+INSERT INTO score VALUES('105', '6-166', '79');
+INSERT INTO score VALUES('109', '3-105', '76');
+INSERT INTO score VALUES('109', '3-245', '68');
+INSERT INTO score VALUES('109', '6-166', '81');
+
+-- 查看表结构
+SELECT * FROM course;
+SELECT * FROM score;
+SELECT * FROM student;
+SELECT * FROM teacher;
+
+查询练习-1-43
+1.	查询student表的所有记录。
+2.	查询student表中的所有记录的sname、ssex和class列。
+3.	查询教师所有的单位，即不重复的depart列。
+4.	查询score表中成绩在60到80之间的所有记录。
+5.	查询score表中成绩为85，86或88的记录。
+6.	查询student表中“95031”班或性别为“女”的同学记录。
+7.	以class降序查询student表的所有记录。
+8.	以cno升序、 degree降序查询score表的所有记录。
+9.	查询“95031"班的学生人数。
+10.	查询score表中的最高分的学生学号和课程号。(子查询或者排序)
+11.	查询练习-分组计算平均成绩
+查询每门课的平均成绩
+12.	查询练习-分组条件与模糊查询
+查询score表中至少有2名学生选修的并以3开头的课程的平均分数。 
+13.	查询练习-范围查询的两种方式
+查询分数大于70，小于90的sno列。
+14.	查询练习-多表查询
+查询所有学生的sname、cno和degree列。
+15.	查询练习-多表查询
+查询所有学生的cname、sno和degree列。
+16.	查询练习-三表关联查询
+查询所有学生的sname、cname和degree列。
+17.	查询练习-子查询 加 分组求平均分
+查询"95031"班学生每课的平均分。
+18.	查询练习-子查询
+查询选修“3-105"课程的成绩高于“109”号同学“3-105"成绩的所有同学的记录。
+19.	查询练习-子查询
+查询成绩高于学号为“109”、课程号为“3-105”的成绩的所有记录。
+20.	查询练习year函数与带in关键字的子查询
+查询和学号为108、101的同学,同年出生的所有学生的sno、sname和sbirthday列。
+21.	查询练习-多层嵌套子查询
+查询“张旭“教师任课的学生成绩。
+22.	查询练习-多表查询
+查询选修某课程的同学人数多于5人的教师姓名。
+23.	查询练习-in表示或者关系
+查询95033班和95031班全体学生的记录。
+24.	查询练习-where条件查询
+查询存在 有85分以上成绩的课程Cno。
+25.	查询练习-子查询
+查询出“计算机系“教师所教课程的成绩表。
+26.	查询练习-union和notin的使用
+查询“计算机系”与“电子工程系“不同职称的教师的tname和prof。
+27.	查询练习-any表示至少一个-desc降序
+查询选修编号为“3-105“课程且成绩至少高于选修编号为“3-245”的同学的Cno、Sno和Degree，并按Degree从高到低次序排序。
+
+28.	查询练习-all表示所有
+查询选修编号为“3-105"且成绩高于选修编号为“3-245"课程的同学的Cno、Sno和Degree。
+29.	查询练习-as取别名-union求并集
+查询所有教师和同学的name、sex和birthday。
+30.	查询练习-union求并集
+查询所有“女"教师和“女”同学的name、sex和birthday。
+31.	查询练习-复制表数据做条件查询
+查询成绩比该课程平均成绩低的同学的成绩表。
+32.	查询练习-子查询
+查询所有任课教师的Tname和Depart。
+33.	查询练习-条件加分组筛选
+查询至少有2名男生的班号。
+34.	查询练习-notlike模糊查询取反
+查询student表中不姓“王”的同学记录。
+35.	查询练习-year函数与now函数
+查询student表中每个学生的姓名和年龄。
+36.	查询练习-max与min函数
+查询student表中最大和最小的sbirthday日期值。
+37.	查询练习-多字段排序
+以班号和年龄从大到小的顺序查询student表中的全部记录。
+38.	查询练习-子查询
+查询“男”教师及其所上的课程。
+39.	查询练习-max函数与子查询
+查询最高分同学的sno、cno和degree列。
+40.	查询练习-子查询
+查询和“李军”同性别的所有同学的Sname。
+41.	查询练习-子查询
+查询和“李军”同性别并同班的同学Sname。
+42.	查询练习-子查询
+查询所有选修“计算机导论"课程的“男”同学的成绩表。
+43.	查询练习-按等级查询
+现查询所有同学的Sno、Cno和grade列。
+
+
+1.	查询student表的所有记录。
+select * from student;
+2.	查询student表中的所有记录的sname、ssex和class列。
+select sname,ssex,class from student;
+3.	查询教师所有的单位，即不重复的depart列。
+select distinct depart from teacher;
+4.	查询score表中成绩在60到80之间的所有记录。
+select * from score where degree between 60 and 80;
+select * from score where degree > 60 and degree <80;
+5.	查询score表中成绩为85，86或88的记录。
+select * from score where degree in (85,86,88);
+6.	查询student表中“95031”班或性别为“女”的同学记录。
+select * from student where class=’95031’ or ssex=’女’;
+7.	以class降序查询student表的所有记录。
+select * from student order by class desc;
+8.	以cno升序、 degree降序查询score表的所有记录。
+select * from student order by cno asc, degree desc;
+9.	查询“95031"班的学生人数。
+select count(*) from student where class =’95031’;
+10.	查询score表中的最高分的学生学号和课程号。(子查询或者排序)
+子查询  select max(degree) from score
+select sno,cno from score where degree=( select max(degree) from score);
+排序查询
+limit x, y;  
+【x：开始位置；y：取多少】【limit （从那开始取），（取到多少结束）；】
+第一个实参 表示 从第几条开始查，第二个实参 表示 查几条！ 
+select sno, cno, degree from score order by degree limit 0, 1; 
+select sno, cno, degree from score order by degree desc limit 0, 1;
+
+11.	查询练习-分组计算平均成绩
+查询每门课的平均成绩
+select cno, avg(degree) from score group by cno;
++-------+----------------+
+| c_no  | AVG(sc_degree) |
++-------+----------------+
+| 3-105 |        87.6667 |
+| 3-245 |        76.3333 |
+| 6-166 |        81.6667 |
++-------+----------------+
+12.	查询练习-分组条件与模糊查询
+查询score表中至少有2名学生选修的并以3开头的课程的平均分数。 
+select cno, avg(degree), count(*) from score group by cno having count(cno) >= 2 and cno like '3%';
++-------+-------------+----------+
+| c_no  | AVG(degree) | COUNT(*) |
++-------+-------------+----------+
+| 3-105 |     85.3333 |        3 |
+| 3-245 |     76.3333 |        3 |
++-------+-------------+----------+
+13.	查询练习-范围查询的两种方式
+查询分数大于70，小于90的sno列。
+select sno, degree from score where degree > 70 and degree < 90; /*开区间：(70, 90) */
+select sno, degree from score where degree between 70 and 90;    /*闭区间：[70, 90] */
++------+-----------+
+| s_no | sc_degree |
++------+-----------+
+| 103  |        86 |
+| 103  |        85 |
+| 105  |        88 |
+| 105  |        75 |
+| 105  |        79 |
+| 109  |        76 |
+| 109  |        81 |
++------+-----------+
+14.	查询练习-多表查询
+查询所有学生的sname、cno和degree列。
+select sno, sname from student;
+ select sno, cno, degree from score;
+
+select sname, cno, degree from student, score where student.sno = score.sno;
++-----------+-------+--------+
+| name      | c_no  | degree |
++-----------+-------+--------+
+| 王丽      | 3-105 |     92 |
+| 王丽      | 3-245 |     86 |
+| 王丽      | 6-166 |     85 |
+| 王芳      | 3-105 |     88 |
+| 王芳      | 3-245 |     75 |
+| 王芳      | 6-166 |     79 |
+| 赵铁柱    | 3-105 |     76 |
+| 赵铁柱    | 3-245 |     68 |
+| 赵铁柱    | 6-166 |     81 |
++-----------+-------+--------+
+15.	查询练习-多表查询
+查询所有学生的cname、sno和degree列。
+select cno, cname from course;
+select cno, sno, degree from score;
+
+select cname, sno, degree from course, score where course.cno = score.cno;
++------+-----------------+--------+
+| s_no | c_name          | degree |
++------+-----------------+--------+
+| 103  | 计算机导论      |     92 |
+| 105  | 计算机导论      |     88 |
+| 109  | 计算机导论      |     76 |
+| 103  | 操作系统        |     86 |
+| 105  | 操作系统        |     75 |
+| 109  | 操作系统        |     68 |
+| 103  | 数字电路        |     85 |
+| 105  | 数字电路        |     79 |
+| 109  | 数字电路        |     81 |
++------+-----------------+--------+
+16.	查询练习-三表关联查询
+查询所有学生的sname、cname和degree列。
+select sname, cname, degree, student.sno as stu_sno, 
+course.cno as cou_cno from student, course, score 
+where student.sno = score.sno 
+and course.cno = score.cno;
+由于字段名存在重复，使用 "表名.字段名 as 别名" 代替。
+select sname, cname, degree, student.sno as stu_sno, score.sno, score.cno ,
+course.cno as cou_cno from student, course, score 
+where student.sno = score.sno 
+and course.cno = score.cno;
+17.	查询练习-子查询 加 分组求平均分
+查询"95031"班学生每课的平均分。
+select * from student where class = '95031';
+ select sno from student where class = '95031';
+ select * from score where sno in ( select sno from student where class = '95031' );
+select cno, avg(degree) from score where sno in (select sno from student where class='95031' )group by cno;
++-------+-------------+
+| c_no  | AVG(degree) |
++-------+-------------+
+| 3-105 |     82.0000 |
+| 3-245 |     71.5000 |
+| 6-166 |     80.0000 |
++-------+-------------+
+18.	查询练习-子查询
+查询选修“3-105"课程的成绩高于“109”号同学“3-105"成绩的所有同学的记录。
+select degree from Score where sno = '109' and cno = '3-105' ;
+ select * from Score where degree > ( select degree from Score where sno = '109' and cno = '3-105' ); 
+
+select * from Score where degree > ( select degree from Score where sno = '109' and cno = '3-105' ) and cno = '3-105';
+19.	查询练习-子查询
+查询成绩高于学号为“109”、课程号为“3-105”的成绩的所有记录。
+select * from score where degree > (select degree from score where sno = '109' and cno = '3-105');
+ 
+20.	查询练习year函数与带in关键字的子查询
+查询和学号为108、101的同学,同年出生的所有学生的sno、sname和sbirthday列。
+select * from student where sno in(108, 101);
+ select year(sbirthday) from student where sno in(108, 101);
+ 
+select * from student where year(sbirthday) 
+in (select year(sbirthday) from student where sno in(108, 101));
+21.	查询练习-多层嵌套子查询
+查询“张旭“教师任课的学生成绩。
+/* select * from teacher where tname = '张旭'; */
+ select tno from teacher where tname = '张旭';
+ /* select * from course where tno = ( select tno from teacher where tname = '张旭' ); */
+ select cno from course where tno = ( select tno from teacher where tname = '张旭' );
+
+select * from score where cno = ( 
+select cno from course where tno = ( 
+select tno from teacher where tname = '张旭' )
+ );
+22.	查询练习-多表查询
+查询选修某课程的同学人数多于5人的教师姓名。
+select cno from score group by cno having count(*) > 5;
+
+  select tno from course where cno = ( select cno from score group by cno having count(*) > 5 )  ;
+ 
+select tname from teacher where tno  = 
+( select tno from course where cno = ( select cno from score group by cno having count(*) > 5 ) );
+ 
+select tname from teacher where tno in 
+( select tno from course where cno = (
+ select cno from score group by cno having count(*) > 5 )
+ );
+
+23.	查询练习-in表示或者关系
+查询95033班和95031班全体学生的记录。
+select * from student where class in ('95031', '95038');
+24.	查询练习-where条件查询
+查询存在 有85分以上成绩的课程Cno。
+SELECT * FROM score where sc_degree > 85;
+25.	查询练习-子查询
+查询出“计算机系“教师所教课程的成绩表。
+select * from teacher where depart = '计算机系';
+select * from course where tno in ( select tno from teacher where depart = '计算机系' );
+ 
+select * from score  where cno in ( 
+select cno from course  where tno in ( 
+select tno from teacher where depart = '计算机系' ) 
+);
+26.	查询练习-union和notin的使用
+查询“计算机系”与“电子工程系“不同职称的教师的tname和prof。
+select prof from teacher where depart = '电子工程系' ;
+ 
+select * from teacher where depart = '计算机系' and 
+prof not in (select prof from teacher where depart = '电子工程系');
+ 
+select * from teacher where depart = '电子工程系' and 
+prof not in (select prof from teacher where depart = '计算机系');
+ 
+
+select * from teacher where depart = '计算机系' and 
+prof not in (select prof from teacher where depart = '电子工程系')
+union
+select * from teacher where depart = '电子工程系' and 
+prof not in (select prof from teacher where depart = '计算机系');
+27.	查询练习-any表示至少一个-desc降序
+查询选修编号为“3-105“课程且成绩至少高于选修编号为“3-245”的同学的Cno、Sno和Degree，并按Degree从高到低次序排序。
+	select * from score where cno = '3-245';
+ 
+select * from score where cno = '3-105';
+ 
+select * from score where cno = '3-105' and 
+degree > any( select degree from score where cno = '3-245' );
+ 
+select * from score where cno = '3-105' and 
+degree > any( select degree from score where cno = '3-245' ) 
+order by degree desc;
+28.	查询练习-all表示所有
+查询选修编号为“3-105"且成绩高于选修编号为“3-245"课程的同学的Cno、Sno和Degree。
+select * from score where cno = '3-105' and 
+degree > all( select degree from score where cno = '3-245' ) 
+order by degree desc;
+ 
+select * from score where cno = '3-105' and 
+degree > all( select degree from score where cno = '3-245' );
+29.	查询练习-as取别名-union求并集
+查询所有教师和同学的name、sex和birthday。
+select tname, tsex, tbirthday from teacher;
+ 
+select sname, ssex, sbirthday from student;
+ 
+select tname, tsex, tbirthday from teacher
+union
+select sname, ssex, sbirthday from student;
+ 
+
+select tname as 'name', tsex as sex, tbirthday as birthday from teacher
+union
+select sname, ssex, sbirthday from student;
+30.	查询练习-union求并集
+查询所有“女"教师和“女”同学的name、sex和birthday。
+select tname as 'name', tsex as sex, tbirthday as birthday from teacher where tsex = '女'
+union
+select sname, ssex, sbirthday from student where ssex = '女';
+31.	查询练习-复制表数据做条件查询
+查询成绩比该课程平均成绩低的同学的成绩表。
+select cno, avg(degree) from score group by cno;
+ 
+select * from score;
+ 
+select * from score a where degree < ( 
+select avg(degree) from score b where a.cno = b.cno );
+32.	查询练习-子查询
+查询所有任课教师的Tname和Depart。
+select * from teacher;
+ 
+select * from course;
+ 
+select tname, depart from teacher where tno in (select tno from course);
+33.	查询练习-条件加分组筛选
+查询至少有2名男生的班号。
+select * from student;
+ 
+select class from student where ssex = '男' group by class having count(*) > 1;
+34.	查询练习-notlike模糊查询取反
+查询student表中不姓“王”的同学记录。
+select * from student;
+ 
+select * from student where sname not like '王%';
+35.	查询练习-year函数与now函数
+查询student表中每个学生的姓名和年龄。
+select year( now() );
+ 
+select year(sbirthday) from student;
+ 
+select sname, year( now() ) - year(sbirthday) as '年龄' from student;
+36.	查询练习-max与min函数
+查询student表中最大和最小的sbirthday日期值。
+select sbirthday from student;
+ 
+select sbirthday from student order by sbirthday;
+ 
+select max(sbirthday) as '最大', min(sbirthday) as 最小 from student;
+37.	查询练习-多字段排序
+以班号和年龄从大到小的顺序查询student表中的全部记录。
+select * from student order by class, sbirthday;
+ 
+select * from student order by class desc, sbirthday;
+
+38.	查询练习-子查询
+查询“男”教师及其所上的课程。
+select * from course where tno in (select tno from teacher where tsex =’男’);
+39.	查询练习-max函数与子查询
+查询最高分同学的sno、cno和degree列。
+select max(degree) from score;
+ 
+select * from score where degree = ( select max(degree) from score );
+40.	查询练习-子查询
+查询和“李军”同性别的所有同学的Sname。
+select ssex  from student where sname = '李军';
+ 
+select sname from student where ssex = (select ssex from student where sname = '李军');查询练习-子查询
+查询和“李军”同性别并同班的同学Sname。
+41.	查询练习-子查询
+查询所有选修“计算机导论"课程的“男”同学的成绩表。
+select * from student where ssex = '男' ;
+ 
+select * from course where cname = '计算机导论';
+ 
+select * from score
+where cno = ( select cno from course where cname = '计算机导论' )
+and sno in ( select sno from student where ssex= '男' );
+42.	查询练习-按等级查询
+现查询所有同学的Sno、Cno和grade列。
+43、假设使用如下命令建立了一个grade表：
+ 
+create table grade(
+    low int(3),
+    upp int(3),
+    grade char(1)
+);
+现查询所有同学的sno、cno 和 grade列
+ 
+select * from grade;
+ 
+select sno, cno, grade from score, grade where degree between low and upp;
+
+
+
+distinct 去重(3)
+between…and…   闭区间(4) <,>
+in     查询规定中的多个值(5)
+or   或者（6）
+order by 排序
+group by 分组
+asc   升序（默认状态）(8)
+desc    降序
+count(*)  统计(9)
+HAVING:    表示持有(12)
+LIKE  表示模糊查询，"%" 是一个通配符，匹配 "3" 后面的任意字符(12)
+having 和 group by 配合使用，目的是过滤分组中的数据。
+having子句，在聚合后 对组记录进行筛选。
+union  求并集（26）
+any 至少?大于其中至少一个（27）
+now()-year() 年龄（35）
+all 大于最大值（且）
+as 别名
+max min 最大、最小
+连接查询（内连接、左连接、右连接）
+建表
+CREATE DATABASE testJoin;
+
+CREATE TABLE person (
+    id INT,
+    name VARCHAR(20),
+    cardId INT
+);
+
+CREATE TABLE card (
+    id INT,
+    name VARCHAR(20)
+);
+
+INSERT INTO card VALUES (1, '饭卡'), (2, '建行卡'), (3, '农行卡'), (4, '工商卡'), (5, '邮政卡');
+SELECT * FROM card;
++------+-----------+
+| id   | name      |
++------+-----------+
+|    1 | 饭卡      |
+|    2 | 建行卡    |
+|    3 | 农行卡    |
+|    4 | 工商卡    |
+|    5 | 邮政卡    |
++------+-----------+
+
+INSERT INTO person VALUES (1, '张三', 1), (2, '李四', 3), (3, '王五', 6);
+SELECT * FROM person;
++------+--------+--------+
+| id   | name   | cardId |
++------+--------+--------+
+|    1 | 张三   |      1 |
+|    2 | 李四   |      3 |
+|    3 | 王五   |      6 |
++------+--------+--------+
+分析两张表发现，person 表并没有为 cardId 字段设置一个在 card 表中对应的 id 外键。如果设置了的话，person 中 cardId 字段值为 6 的行就插不进去，因为该 cardId 值在 card 表中并没有。
+
+内连接【inner join查询、join查询】
+内联查询，其实就是两张表中的数据，通过某个字段相等，查询出相关记录数据。
+select * from person inner join card on person.cardId = card.id;
+select * from person    join    card on person.cardId = card.id;
++------+--------+--------+------+-----------+
+| id   | name   | cardId | id   | name      |
++------+--------+--------+------+-----------+
+|    1 | 张三   |      1 |    1 | 饭卡      |
+|    2 | 李四   |      3 |    3 | 农行卡    |
++------+--------+--------+------+-----------+
+左外连接【left join、left outer join】
+左外连接，会把左边表里面的所有数据取出来，而右边表中的数据，如果有相等的，就显示出来；
+如果没有，就会补NULL。
+select * from person left    join    card on person.cardId = card.id;
+select * from person left outer join card on person.cardId = card.id;
++------+--------+--------+------+-----------+
+| id   | name   | cardId | id   | name      |
++------+--------+--------+------+-----------+
+|    1 | 张三   |      1 |    1 | 饭卡      |
+|    2 | 李四   |      3 |    3 | 农行卡    |
+|    3 | 王五   |      6 | NULL | NULL      |
++------+--------+--------+------+-----------+
+
+右外连接【right join、right outer join】
+右外连接，会把右边表里面的所有数据取出来，而左边表中的数据，如果有相等的，就显示出来；
+如果没有，就会补NULL。
+select * from person right     join   card on person.cardId = card.id;
+select * from person right outer join card on person.cardId = card.id;
++------+--------+--------+------+-----------+
+| id   | name   | cardId | id   | name      |
++------+--------+--------+------+-----------+
+|    1 | 张三   |      1 |    1 | 饭卡      |
+|    2 | 李四   |      3 |    3 | 农行卡    |
+| NULL | NULL   |   NULL |    2 | 建行卡    |
+| NULL | NULL   |   NULL |    4 | 工商卡    |
+| NULL | NULL   |   NULL |    5 | 邮政卡    |
++------+--------+--------+------+-----------+
+
+全外连接【full join】
+select * from person full join card on person.cardId = card.id; /* MySQL不支持full join */
+select * from person right join card on person.cardId = card.id
+union
+select * from person left  join card on person.cardId = card.id;
++------+--------+--------+------+-----------+
+| id   | name   | cardId | id   | name      |
++------+--------+--------+------+-----------+
+|    1 | 张三   |      1 |    1 | 饭卡      |
+|    2 | 李四   |      3 |    3 | 农行卡    |
+|    3 | 王五   |      6 | NULL | NULL      |
+| NULL | NULL   |   NULL |    2 | 建行卡    |
+| NULL | NULL   |   NULL |    4 | 工商卡    |
+| NULL | NULL   |   NULL |    5 | 邮政卡    |
++------+--------+--------+------+-----------+
+
+事务transcation
+mysql中，事务其实是一个最小的不可分割的工作单元。事务能够保证一个业务的完整性。
+作为单个逻辑工作单元执行的一些列操作，要么全部执行，要么全部不执行。
+比如我们的银行转账：
+-- a -> -100
+UPDATE user set money = money - 100 WHERE name = 'a';
+-- b -> +100
+UPDATE user set money = money + 100 WHERE name = 'b';
+在实际项目中，假设只有一条 SQL 语句执行成功，而另外一条执行失败了，就会出现数据前后不一致。
+
+因此，在执行多条有关联 SQL 语句时，事务可能会要求这些 SQL 语句要么同时执行成功，要么就都执行失败。
+如何控制事务 - COMMIT / ROLLBACK
+在 MySQL 中，事务的自动提交状态默认是开启的。
+
+select @@autocommit;
++--------------+
+| @@AUTOCOMMIT |
++--------------+
+|            1 |
++--------------+
+
+自动提交的作用：当我们执行一条 SQL 语句的时候，其产生的效果就会立即体现出来，且不能回滚。
+
+什么是回滚？举个例子：
+CREATE DATABASE bank;
+
+USE bank;
+
+CREATE TABLE user (
+    id INT PRIMARY KEY,
+    name VARCHAR(20),
+    money INT
+);
+
+INSERT INTO user VALUES (1, 'a', 1000);
+
+SELECT * FROM user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
++----+------+-------+
+可以看到，在执行插入语句后数据立刻生效，原因是 MySQL 中的事务自动将它提交到了数据库中。那么所谓回滚的意思就是，撤销执行过的所有 SQL 语句，使其回滚到最后一次提交数据时的状态。
+
+在 MySQL 中使用 ROLLBACK 执行回滚：
+
+-- 回滚到最后一次提交
+ROLLBACK;
+
+SELECT * FROM user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
++----+------+-------+
+由于所有执行过的 SQL 语句都已经被提交过了，所以数据并没有发生回滚。那如何让数据可以发生回滚？
+
+-- 关闭自动提交
+SET AUTOCOMMIT = 0;
+
+-- 查询自动提交状态
+SELECT @@AUTOCOMMIT;
++--------------+
+| @@AUTOCOMMIT |
++--------------+
+|            0 |
++--------------+
+将自动提交关闭后，测试数据回滚：
+INSERT INTO user VALUES (2, 'b', 1000);
+-- 关闭 AUTOCOMMIT 后，数据的变化是在一张虚拟的临时数据表中展示，
+-- 发生变化的数据并没有真正插入到数据表中。
+SELECT * FROM user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
+|  2 | b    |  1000 |
++----+------+-------+
+
+-- 数据表中的真实数据其实还是：
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
++----+------+-------+
+
+-- 由于数据还没有真正提交，可以使用回滚
+ROLLBACK;
+
+-- 再次查询
+SELECT * FROM user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
++----+------+-------+
+那如何将虚拟的数据真正提交到数据库中？使用 COMMIT :
+
+INSERT INTO user VALUES (2, 'b', 1000);
+-- 手动提交数据（持久性），
+-- 将数据真正提交到数据库中，执行后不能再回滚提交过的数据。
+COMMIT;
+
+-- 提交后测试回滚
+ROLLBACK;
+
+-- 再次查询（回滚无效了）
+SELECT * FROM user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
+|  2 | b    |  1000 |
++----+------+-------+
+
+总结
+自动提交
+查看自动提交状态：SELECT @@AUTOCOMMIT ；
+设置自动提交状态：SET AUTOCOMMIT = 0 。
+手动提交
+@@AUTOCOMMIT = 0 时，使用 COMMIT 命令提交事务。
+事务回滚
+@@AUTOCOMMIT = 0 时，使用 ROLLBACK 命令回滚事务。
+
+事务的实际应用，让我们再回到银行转账项目：
+
+-- 转账
+UPDATE user set money = money - 100 WHERE name = 'a';
+
+-- 到账
+UPDATE user set money = money + 100 WHERE name = 'b';
+
+SELECT * FROM user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |   900 |
+|  2 | b    |  1100 |
++----+------+-------+
+这时假设在转账时发生了意外，就可以使用 ROLLBACK 回滚到最后一次提交的状态：
+
+-- 假设转账发生了意外，需要回滚。
+ROLLBACK;
+
+SELECT * FROM user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
+|  2 | b    |  1000 |
++----+------+-------+
+这时我们又回到了发生意外之前的状态，也就是说，事务给我们提供了一个可以反悔的机会。假设数据没有发生意外，这时可以手动将数据真正提交到数据表中：COMMIT 。
+
+手动开启事务 - BEGIN / START TRANSACTION
+事务的默认提交被开启 ( @@AUTOCOMMIT = 1 ) 后，此时就不能使用事务回滚了。但是我们还可以手动开启一个事务处理事件，使其可以发生回滚：
+
+-- 使用 BEGIN 或者 START TRANSACTION 手动开启一个事务
+-- START TRANSACTION;
+BEGIN;
+UPDATE user set money = money - 100 WHERE name = 'a';
+UPDATE user set money = money + 100 WHERE name = 'b';
+
+-- 由于手动开启的事务没有开启自动提交，
+-- 此时发生变化的数据仍然是被保存在一张临时表中。
+SELECT * FROM user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |   900 |
+|  2 | b    |  1100 |
++----+------+-------+
+
+-- 测试回滚
+ROLLBACK;
+
+SELECT * FROM user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
+|  2 | b    |  1000 |
++----+------+-------+
+仍然使用 COMMIT 提交数据，提交后无法再发生本次事务的回滚。
+
+BEGIN;
+UPDATE user set money = money - 100 WHERE name = 'a';
+UPDATE user set money = money + 100 WHERE name = 'b';
+
+SELECT * FROM user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |   900 |
+|  2 | b    |  1100 |
++----+------+-------+
+
+-- 提交数据
+COMMIT;
+
+-- 测试回滚（无效，因为表的数据已经被提交）
+ROLLBACK;
+
+事务的 ACID 特征与使用
+事务的四大特征：
+
+A 原子性：事务是最小的单位，不可以再分割；
+C 一致性：要求同一事务中的 SQL 语句，必须保证同时成功或者失败；
+I 隔离性：事务1 和 事务2 之间是具有隔离性的；
+D 持久性：事务一旦结束 ( COMMIT ) ，就不可以再返回了 ( ROLLBACK )
+
+事务的隔离性
+事务的隔离性可分为四种 ( 性能从低到高 ) ：
+READ UNCOMMITTED ( 读取未提交 )
+如果有多个事务，那么任意事务都可以看见其他事务的未提交数据。
+
+READ COMMITTED ( 读取已提交 )
+只能读取到其他事务已经提交的数据。
+
+REPEATABLE READ ( 可被重复读 )
+如果有多个连接都开启了事务，那么事务之间不能共享数据记录，否则只能共享已提交的记录。
+
+SERIALIZABLE ( 串行化 )
+所有的事务都会按照固定顺序执行，执行完一个事务后再继续执行下一个事务的写入操作。
+
+查看当前数据库的默认隔离级别：
+
+-- MySQL 8.x, GLOBAL 表示系统级别，不加表示会话级别。
+SELECT @@GLOBAL.TRANSACTION_ISOLATION;
+SELECT @@TRANSACTION_ISOLATION;
++--------------------------------+
+| @@GLOBAL.TRANSACTION_ISOLATION |
++--------------------------------+
+| REPEATABLE-READ                | -- MySQL的默认隔离级别，可以重复读。
++--------------------------------+
+
+-- MySQL 5.x
+SELECT @@GLOBAL.TX_ISOLATION;
+SELECT @@TX_ISOLATION;
+
+修改隔离级别：
+
+-- 设置系统隔离级别，LEVEL 后面表示要设置的隔离级别 (READ UNCOMMITTED)。
+SET GLOBAL TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+-- 查询系统隔离级别，发现已经被修改。
+SELECT @@GLOBAL.TRANSACTION_ISOLATION;
++--------------------------------+
+| @@GLOBAL.TRANSACTION_ISOLATION |
++--------------------------------+
+| READ-UNCOMMITTED               |
++--------------------------------+
+脏读
+测试 READ UNCOMMITTED ( 读取未提交 ) 的隔离性：
+
+INSERT INTO user VALUES (3, '小明', 1000);
+INSERT INTO user VALUES (4, '淘宝店', 1000);
+
+SELECT * FROM user;
++----+-----------+-------+
+| id | name      | money |
++----+-----------+-------+
+|  1 | a         |   900 |
+|  2 | b         |  1100 |
+|  3 | 小明      |  1000 |
+|  4 | 淘宝店    |  1000 |
++----+-----------+-------+
+
+-- 开启一个事务操作数据
+-- 假设小明在淘宝店买了一双800块钱的鞋子：
+START TRANSACTION;
+UPDATE user SET money = money - 800 WHERE name = '小明';
+UPDATE user SET money = money + 800 WHERE name = '淘宝店';
+
+-- 然后淘宝店在另一方查询结果，发现钱已到账。
+SELECT * FROM user;
++----+-----------+-------+
+| id | name      | money |
++----+-----------+-------+
+|  1 | a         |   900 |
+|  2 | b         |  1100 |
+|  3 | 小明      |   200 |
+|  4 | 淘宝店    |  1800 |
++----+-----------+-------+
+由于小明的转账是在新开启的事务上进行操作的，而该操作的结果是可以被其他事务（另一方的淘宝店）看见的，因此淘宝店的查询结果是正确的，淘宝店确认到账。但就在这时，如果小明在它所处的事务上又执行了 ROLLBACK 命令，会发生什么？
+
+-- 小明所处的事务
+ROLLBACK;
+
+-- 此时无论对方是谁，如果再去查询结果就会发现：
+SELECT * FROM user;
++----+-----------+-------+
+| id | name      | money |
++----+-----------+-------+
+|  1 | a         |   900 |
+|  2 | b         |  1100 |
+|  3 | 小明      |  1000 |
+|  4 | 淘宝店    |  1000 |
++----+-----------+-------+
+这就是所谓的脏读，一个事务读取到另外一个事务还未提交的数据。这在实际开发中是不允许出现的。
+
+读取已提交
+把隔离级别设置为 READ COMMITTED ：
+
+SET GLOBAL TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SELECT @@GLOBAL.TRANSACTION_ISOLATION;
++--------------------------------+
+| @@GLOBAL.TRANSACTION_ISOLATION |
++--------------------------------+
+| READ-COMMITTED                 |
++--------------------------------+
+这样，再有新的事务连接进来时，它们就只能查询到已经提交过的事务数据了。但是对于当前事务来说，它们看到的还是未提交的数据，例如：
+
+-- 正在操作数据事务（当前事务）
+START TRANSACTION;
+UPDATE user SET money = money - 800 WHERE name = '小明';
+UPDATE user SET money = money + 800 WHERE name = '淘宝店';
+
+-- 虽然隔离级别被设置为了 READ COMMITTED，但在当前事务中，
+-- 它看到的仍然是数据表中临时改变数据，而不是真正提交过的数据。
+SELECT * FROM user;
++----+-----------+-------+
+| id | name      | money |
++----+-----------+-------+
+|  1 | a         |   900 |
+|  2 | b         |  1100 |
+|  3 | 小明      |   200 |
+|  4 | 淘宝店    |  1800 |
++----+-----------+-------+
+
+
+-- 假设此时在远程开启了一个新事务，连接到数据库。
+$ mysql -u root -p12345612
+
+-- 此时远程连接查询到的数据只能是已经提交过的
+SELECT * FROM user;
++----+-----------+-------+
+| id | name      | money |
++----+-----------+-------+
+|  1 | a         |   900 |
+|  2 | b         |  1100 |
+|  3 | 小明      |  1000 |
+|  4 | 淘宝店    |  1000 |
++----+-----------+-------+
+但是这样还有问题，那就是假设一个事务在操作数据时，其他事务干扰了这个事务的数据。例如：
+
+-- 小张在查询数据的时候发现：
+SELECT * FROM user;
++----+-----------+-------+
+| id | name      | money |
++----+-----------+-------+
+|  1 | a         |   900 |
+|  2 | b         |  1100 |
+|  3 | 小明      |   200 |
+|  4 | 淘宝店    |  1800 |
++----+-----------+-------+
+
+-- 在小张求表的 money 平均值之前，小王做了一个操作：
+START TRANSACTION;
+INSERT INTO user VALUES (5, 'c', 100);
+COMMIT;
+
+-- 此时表的真实数据是：
+SELECT * FROM user;
++----+-----------+-------+
+| id | name      | money |
++----+-----------+-------+
+|  1 | a         |   900 |
+|  2 | b         |  1100 |
+|  3 | 小明      |  1000 |
+|  4 | 淘宝店    |  1000 |
+|  5 | c         |   100 |
++----+-----------+-------+
+
+-- 这时小张再求平均值的时候，就会出现计算不相符合的情况：
+SELECT AVG(money) FROM user;
++------------+
+| AVG(money) |
++------------+
+|  820.0000  |
++------------+
+虽然 READ COMMITTED 让我们只能读取到其他事务已经提交的数据，但还是会出现问题，就是在读取同一个表的数据时，可能会发生前后不一致的情况。这被称为不可重复读现象 ( READ COMMITTED ) 。
+
+幻读
+将隔离级别设置为 REPEATABLE READ ( 可被重复读取 ) :
+
+SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SELECT @@GLOBAL.TRANSACTION_ISOLATION;
++--------------------------------+
+| @@GLOBAL.TRANSACTION_ISOLATION |
++--------------------------------+
+| REPEATABLE-READ                |
++--------------------------------+
+测试 REPEATABLE READ ，假设在两个不同的连接上分别执行 START TRANSACTION :
+
+-- 小张 - 成都
+START TRANSACTION;
+INSERT INTO user VALUES (6, 'd', 1000);
+
+-- 小王 - 北京
+START TRANSACTION;
+
+-- 小张 - 成都
+COMMIT;
+当前事务开启后，没提交之前，查询不到，提交后可以被查询到。但是，在提交之前其他事务被开启了，那么在这条事务线上，就不会查询到当前有操作事务的连接。相当于开辟出一条单独的线程。
+
+无论小张是否执行过 COMMIT ，在小王这边，都不会查询到小张的事务记录，而是只会查询到自己所处事务的记录：
+
+SELECT * FROM user;
++----+-----------+-------+
+| id | name      | money |
++----+-----------+-------+
+|  1 | a         |   900 |
+|  2 | b         |  1100 |
+|  3 | 小明      |  1000 |
+|  4 | 淘宝店    |  1000 |
+|  5 | c         |   100 |
++----+-----------+-------+
+这是因为小王在此之前开启了一个新的事务 ( START TRANSACTION ) ，那么在他的这条新事务的线上，跟其他事务是没有联系的，也就是说，此时如果其他事务正在操作数据，它是不知道的。
+
+然而事实是，在真实的数据表中，小张已经插入了一条数据。但是小王此时并不知道，也插入了同一条数据，会发生什么呢？
+
+INSERT INTO user VALUES (6, 'd', 1000);
+-- ERROR 1062 (23000): Duplicate entry '6' for key 'PRIMARY'
+报错了，操作被告知已存在主键为 6 的字段。这种现象也被称为幻读，一个事务提交的数据，不能被其他事务读取到。
+
+串行化
+顾名思义，就是所有事务的写入操作全都是串行化的。什么意思？把隔离级别修改成 SERIALIZABLE :
+
+SET GLOBAL TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+SELECT @@GLOBAL.TRANSACTION_ISOLATION;
++--------------------------------+
+| @@GLOBAL.TRANSACTION_ISOLATION |
++--------------------------------+
+| SERIALIZABLE                   |
++--------------------------------+
+还是拿小张和小王来举例：
+
+-- 小张 - 成都
+START TRANSACTION;
+
+-- 小王 - 北京
+START TRANSACTION;
+
+-- 开启事务之前先查询表，准备操作数据。
+SELECT * FROM user;
++----+-----------+-------+
+| id | name      | money |
++----+-----------+-------+
+|  1 | a         |   900 |
+|  2 | b         |  1100 |
+|  3 | 小明      |  1000 |
+|  4 | 淘宝店    |  1000 |
+|  5 | c         |   100 |
+|  6 | d         |  1000 |
++----+-----------+-------+
+
+-- 发现没有 7 号王小花，于是插入一条数据：
+INSERT INTO user VALUES (7, '王小花', 1000);
+此时会发生什么呢？由于现在的隔离级别是 SERIALIZABLE ( 串行化 ) ，串行化的意思就是：假设把所有的事务都放在一个串行的队列中，那么所有的事务都会按照固定顺序执行，执行完一个事务后再继续执行下一个事务的写入操作 ( 这意味着队列中同时只能执行一个事务的写入操作 ) 。
+
+根据这个解释，小王在插入数据时，会出现等待状态，直到小张执行 COMMIT 结束它所处的事务，或者出现等待超时。
+
+索引
+是帮助MySQL高效获取数据的排好序的数据结构
+索引的分类
+1）单值索引：即一个索引只包含单个列，一个表可以有多个单列索引
+2）唯一索引：索引列的值必须唯一，但允许有空值
+3）复合索引：即一个索引包含多个列
+创建索引
+CREATE [UNIQUE | FULLTEXT | SPATIAL] INDEX index_name
+[USING index_type]
+ON tbl_name(index_col_name）
+create index idx_city_name on city (city_name);
+查看索引
+show index from table_name;
+删除索引
+DROP INDEX index_name ON tbl_name;
+ 
+索引数据结构
+二叉树
+红黑树
+hash表（根据运算可以定义到确定索引，但如果是范围索引{>}则无法选择范围）
+B-Tree
+B+Tree
+存储引擎
+MyISAM 索引文件和数据文件是分离的（非聚集索引）{FRM 表结构/MYI 存储索引 /MYD 存储数据}
+ 
+InnoDB索引实现（聚集）
+ 
+表数据文件本身就是按B+Tree组织的一个索引结构文件
+聚集索引——叶节点包含了完整的数据记录
+InnoDB表 必须有主键，并推荐使用整型的自增主键（要不然数据库自己创建，影响速度和内存）
+ 
+非聚集索引{索引文件和数据文件是分离的MYI /MYD} 
+
+聚集索引查找速度快
+ 
++++++
+SQL语句执行频率 
+ 
+show status like 'Com__';
+show status like 'Innodb_rows_%';
+
++++
+B-Tree
+叶节点具有相同的深度，叶节点的指针为空
+所有索引元素不重复
+节点中的数据索引从左到右递增排列
+
+B+Tree
+非叶子节点不存储data，只存储索引（冗余），可以放更多的索引
+叶子节点包含所有索引字段，不存储指针
+叶子节点用指针链接，顺序访问指针，提高区间访问的性能
+
++++++
+锁
+表锁（偏读）多应用于MyISAM
+1.对M有ISM表的读操作（加读锁），不会阻塞其他进程对同一表的读请求，但会阻塞对同一表的写请求，只有当读锁释放后，才会执行对其它进程的写操作。
+2.对MyISAM表的写操作（加写锁），会阻塞其他进程对同一表的读和写操作，只有当写锁释放后，才会执行其他进程的读写操作。
+简而言之，就是 读锁会阻塞写，但是不会堵塞读；而写锁则会把读和写都堵塞。
+行锁（偏写）多应用于InnoDB
+
+
 
